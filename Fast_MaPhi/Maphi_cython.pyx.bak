@@ -1,0 +1,168 @@
+#!python
+#cython: language_level=3, infer_types=True, boundscheck=False, wraparound=False, nonecheck=False
+from libc.stdlib cimport atoi, atof
+import ray
+
+cdef extern from "<stdlib.h>" nogil:
+    int atoi (const char *string)
+
+cpdef inline get_val(fileout,param,num,ini,fin,from_stt):
+    with open(fileout) as fp:
+        for cnt, line in enumerate(fp):
+            if cnt == check_line(fileout,param,num,from_stt):
+                return line[ini:fin]
+
+#Parsing output file
+cpdef inline check_line(fileout,pattern,num,from_st):
+    with open(fileout) as fp:
+        for cnt, line in enumerate(fp):
+            if cnt > from_st and pattern in line:
+                return cnt+int(num)
+
+
+cpdef calc_cube_values(int electrons):
+    cdef int cube
+    cdef int hcube
+    cdef int h1cube
+    cdef int h2cube
+    cdef int lcube
+    cdef int l1cube
+    cdef int l2cube
+    cube = <int>((electrons/2))
+    hcube = <int>(cube-1) 
+    h1cube = <int>(cube-2)
+    h2cube = <int>(cube-3)
+    lcube = <int>(cube)
+    l1cube = <int>(cube+1)
+    l2cube = <int>(cube+2)
+    return cube, hcube, h1cube, h2cube, lcube, l1cube, l2cube
+
+
+cpdef calc_homo_lumo_values(molecule_file, int electrons, int converg):
+    cdef int homo
+    cdef int homo1
+    cdef int homo2
+    cdef int lumo
+    cdef int lumo1
+    cdef int lumo2
+    '''cdef double HOMO
+    cdef double HOMO1
+    cdef double HOMO2'''
+    homo=<int>((electrons/2))
+    homo1=<int>(homo-1)
+    homo2=<int>(homo-2)
+    lumo=<int>(homo+1)
+    lumo1=<int>(homo+2)
+    lumo2=<int>(homo+3)
+    return homo, homo1, homo2, lumo, lumo1, lumo2
+    
+    
+    '''if name == "HOMO":
+        results = atof((get_val("orca_input.out","OCC",homo,16,29,converg)).encode('utf-8'))
+        return results
+    if name == "HOMO1":
+        results = atof((get_val("orca_input.out","OCC",homo1,16,29,converg)).encode('utf-8'))
+        return results
+    if name == "HOMO2":
+        results = atof((get_val("orca_input.out","OCC",homo2,16,29,converg)).encode('utf-8'))
+        return results
+    if name == "LUMO":
+        results = atof((get_val("orca_input.out","OCC",lumo,16,29,converg)).encode('utf-8'))
+        return results
+    if name == "LUMO1":
+        results = atof((get_val("orca_input.out","OCC",lumo1,16,29,converg)).encode('utf-8'))
+        return results
+    if name == "LUMO2":
+        results = atof((get_val("orca_input.out","OCC",lumo2,16,29,converg)).encode('utf-8'))
+        return results'''
+            
+        
+    '''HOMO=atof((get_val("orca_input.out","OCC",homo,16,29,converg)).encode('utf-8'))
+    HOMO1=atof((get_val("orca_orcainput.out","OCC",homo1,16,29,converg)).encode('utf-8'))
+    HOMO2=atof((get_val("orca_input.out","OCC",homo2,16,29,converg)).encode('utf-8'))
+    return homo, homo1, homo2
+
+cpdef calc_lumo_values(molecule_file, int electrons, int converg, int homo):
+    cdef int lumo
+    cdef int lumo1
+    cdef int lumo2
+    cdef double LUMO
+    cdef double LUMO1
+    cdef double LUMO2
+    lumo=<int>(homo+1)
+    lumo1=<int>(homo+2)
+    lumo2=<int>(homo+3)
+    
+    LUMO=atof((get_val("orca_input.out","OCC",lumo,16,29,converg)).encode('utf-8'))
+    LUMO1=atof((get_val("orca_input.out","OCC",lumo1,16,29,converg)).encode('utf-8'))
+    LUMO2=atof((get_val("orca_input.out","OCC",lumo2,16,29,converg)).encode('utf-8'))
+    return lumo, lumo1, lumo2'''
+
+cpdef calc_electronegativity(double HOMO,double LUMO):
+    cdef double electronegativity
+    electronegativity = <float>((LUMO + HOMO)/2)
+    return electronegativity
+
+cpdef calc_electrophilicity(double HOMO,double LUMO):
+    cdef double electrophilicity
+    electrophilicity = <float>(((LUMO + HOMO)**2)/(4*(LUMO-HOMO)))
+    return electrophilicity
+
+cpdef calc_ElectronDonatingPower(double HOMO, double LUMO, double hardness):
+    cdef double ElectronDonatingPower
+    ElectronDonatingPower = (3*<float>(HOMO)+<float>(LUMO))**2/(16*hardness)
+    return ElectronDonatingPower
+
+cpdef calc_ElectronAcceptingPower(double HOMO, double LUMO, double hardness):
+    cdef double ElectronAcceptingPower
+    ElectronAcceptingPower = (<float>(HOMO)+(3*<float>(LUMO)))**2/(16*hardness)
+    return ElectronAcceptingPower
+
+'''cpdef calc_electronic_descriptors(molecule_file,electrons,converg):
+    #
+    cdef int cube
+    cdef int hcube
+    cdef int h1cube
+    cdef int h2cube
+    cdef int lcube
+    cdef int l1cube
+    cdef int l2cube
+    cdef int homo
+    cdef int homo1
+    cdef int homo2
+    cdef int lumo
+    cdef int lumo1
+    cdef int lumo2
+    cdef double HOMO
+    cdef double HOMO1
+    cdef double HOMO2
+    cdef double LUMO
+    cdef double LUMO1
+    cdef double LUMO2
+    cdef double electronegativity
+    cdef double electrophilicity
+    cdef double ElectronDonatingPower
+    cdef double ElectronAcceptingPower
+    cube = <int>((electrons/2))
+    hcube, h1cube, h2cube, lcube, l1cube, l2cube = <int>(cube-1) , <int>(cube-2) , <int>(cube-3) , <int>(cube) , <int>(cube+1) , <int>(cube+2)
+    homo=<int>((electrons/2))
+    homo1=<int>(homo-1)
+    homo2=<int>(homo-2)
+    lumo=<int>(homo+1)
+    lumo1=<int>(homo+2)
+    lumo2=<int>(homo+3)
+    HOMO=atof((get_val("orca_input.out","OCC",homo,16,29,converg)).encode('utf-8'))
+    HOMO1=atof((get_val("orca_input.out","OCC",homo1,16,29,converg)).encode('utf-8'))
+    HOMO2=atof((get_val("orca_input.out","OCC",homo2,16,29,converg)).encode('utf-8'))
+    LUMO=atof((get_val("orca_input.out","OCC",lumo,16,29,converg)).encode('utf-8'))
+    LUMO1=atof((get_val("orca_input.out","OCC",lumo1,16,29,converg)).encode('utf-8'))
+    LUMO2=atof((get_val("orca_input.out","OCC",lumo2,16,29,converg)).encode('utf-8'))
+    hardness = LUMO - HOMO
+    electronegativity = <float>((LUMO + HOMO)/2)
+    electrophilicity = <float>(((LUMO + HOMO)**2)/(4*(LUMO-HOMO)))
+    ElectronDonatingPower = (3*<float>(HOMO)+<float>(LUMO))**2/(16*hardness)
+    ElectronAcceptingPower = (<float>(HOMO)+(3*<float>(LUMO)))**2/(16*hardness)
+    NetElectrophilicity = ElectronDonatingPower + ElectronAcceptingPower
+    return cube, hcube, h1cube, h2cube, lcube, l1cube, l2cube, homo, homo1, homo2, lumo, lumo1, lumo2, HOMO, HOMO1, \
+ HOMO2, LUMO, LUMO1, LUMO2, hardness, electronegativity, electrophilicity, \
+ ElectronDonatingPower, ElectronAcceptingPower, NetElectrophilicity'''
