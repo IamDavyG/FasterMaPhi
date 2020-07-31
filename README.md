@@ -1,6 +1,6 @@
 # MaPhi
 
-Python code for easily compute 2D-3D and electronic descriptors, using orca and MORDRED for a set of molecules for chemoinformatics studies.
+A performance-optimised fork of MaPhi, a Python code for easily compute 2D-3D and electronic descriptors, using orca and MORDRED for a set of molecules for chemoinformatics studies.
 
 ## WHAT IS MaPhi:
 
